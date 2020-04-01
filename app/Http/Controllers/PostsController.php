@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use JD\Cloudder\Facades\Cloudder;
 use App\Post;
 use App\Http\Controllers\UploadFileController;
+use App\Http\Requests\Posts\CreatePostRequest;
 use App\Http\Requests\Posts\UpdatePostRequest;
 
 class PostsController extends Controller
@@ -22,24 +23,22 @@ class PostsController extends Controller
         return view('posts.create');
     }
 
-    public function store(Request $request)
+    public function store(CreatePostRequest $request)
     {
-        $validatationAttributes = $this->validatePost();
 
-        if ($request->hasFile('image')) {
-            $post = new Post;
-            $post->title = $validatationAttributes['title'];
-            $post->description = $validatationAttributes['description'];
-            $post->content = $validatationAttributes['content'];
-            list($post->image, $post->image_id, $post->thumbnail) = UploadFileController::upload($request->file('image'));
-            if ($request->has('published_at')) {
-                $post->published_at = $request->published_at;
-            }
+        $post = new Post;
 
-            $post->save();
-            session()->flash('success', 'Post created successfully');
-            return redirect(route('posts.index'));
+        list($post->image, $post->image_id, $post->thumbnail) = UploadFileController::upload($request->file('image'));
+        $post->title = $request->title;
+        $post->description = $request->description;
+        $post->content = $request->content;
+
+        if ($request->has('published_at')) {
+            $post->published_at = $request->published_at;
         }
+        $post->save();
+        session()->flash('success', 'Post created successfully');
+        return redirect(route('posts.index'));
     }
 
     /**
@@ -75,7 +74,7 @@ class PostsController extends Controller
     {
         $data  = $request->only(['title', 'description', 'content', 'published_at']);
         if ($request->hasFile('image')) {
-            Cloudder::delete($post->image_id);
+            $post->deleteImage();
             list($post->image, $post->image_id, $post->thumbnail) = UploadFileController::upload($request->file('image'));
         }
         $post->title = $data['title'];
@@ -95,9 +94,10 @@ class PostsController extends Controller
      */
     public function destroy($id)
     {
-        $post = Post::withTrashed()->where('id', $id)->first();
+        $post = Post::withTrashed()->where('id', $id)->firstOrFail();
+
         if ($post->trashed()) {
-            Cloudder::delete($post->image_id);
+            $post->deleteImage();
             $post->forceDelete();
             session()->flash('success', 'Post Deleted successfully');
         } else {
@@ -114,13 +114,10 @@ class PostsController extends Controller
         return view('posts.index', compact('posts'));
     }
 
-    public function validatePost()
+    public function restore($id)
     {
-        return request()->validate([
-            'title' => 'required|unique:posts',
-            'description' => 'required',
-            'content' => 'required',
-            'image' => 'image|mimes:jpeg,png,jpg,webp|max:1024'
-        ]);
+        $post = Post::withTrashed()->where('id', $id)->restore();
+        session()->flash('success', 'Post Restored successfully');
+        return redirect()->back();
     }
 }

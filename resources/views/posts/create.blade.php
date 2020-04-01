@@ -36,12 +36,6 @@
             </div>
             <div class="form-group">
                 <label for="content">Content</label>
-                {{-- <textarea type="text" class="form-control @error('content') is-invalid @enderror" id="content"
-                    name="content" placeholder="Content">{{ isset($post) ? $post->content: '' }}</textarea>
-                @error('content')
-                <span class="invalid-feedback">{{ $errors->first('content') }}</span>
-                @enderror --}}
-
                 <input id="x" type="hidden" name="content" id="content" value="{{ isset($post) ? $post->content: '' }}">
                 <trix-editor input="x"></trix-editor>
             </div>

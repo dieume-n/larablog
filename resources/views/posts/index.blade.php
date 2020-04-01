@@ -31,7 +31,14 @@
                     <td>{{ $post->published_at }}</td>
                     <td>{{ $post->created_at->diffForHumans() }}</td>
                     <td class="float-right">
-                        @if (!$post->trashed())
+                        @if ($post->trashed())
+                        <form action="{{ route('posts.restore', $post->id) }}" method="post">
+                            @csrf
+                            @method('PUT')
+                            <button type="submit" class="btn btn-sm btn-info float-right text-white">Restore</button>
+                        </form>
+
+                        @else
                         <a href="{{ route('posts.edit', $post->id) }}" class="btn btn-sm btn-info float-right">Edit</a>
                         @endif
 

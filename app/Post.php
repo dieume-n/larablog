@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Category;
 use JD\Cloudder\Facades\Cloudder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -16,8 +17,8 @@ class Post extends Model
         Cloudder::delete($this->image_id);
     }
 
-    public function restore()
+    public function category()
     {
-        # code...
+        return $this->belongsTo(Category::class);
     }
 }

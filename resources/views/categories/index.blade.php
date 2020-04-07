@@ -12,15 +12,20 @@
         </div>
     </div>
     <div class="card-body">
-        <table class="table table-striped">
+        @if (count($categories) === 0)
+        <h3>No Category Found</h3>
+        @else
+        <table class="table">
             <thead>
                 <th>Category Name</th>
-                <th>Action</th>
+                <th>Post count</th>
+                <th></th>
             </thead>
             <tbody>
                 @foreach ($categories as $category)
                 <tr>
                     <td>{{ $category->name }}</td>
+                    <td>{{$category->posts->count()}}</td>
                     <td>
                         <a href="{{ route('categories.edit', $category->id)}}" class="btn btn-primary btn-sm">Edit</a>
                         <button class="btn btn-danger btn-sm"
@@ -30,6 +35,7 @@
                 @endforeach
             </tbody>
         </table>
+        @endif
 
         <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel"
             aria-hidden="true">

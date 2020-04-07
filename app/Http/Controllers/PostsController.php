@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Category;
 use Illuminate\Http\Request;
 use JD\Cloudder\Facades\Cloudder;
 use App\Post;
@@ -11,6 +12,10 @@ use App\Http\Requests\Posts\UpdatePostRequest;
 
 class PostsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('verifyCategoryCount')->only(['create', 'store']);
+    }
 
     public function index()
     {
@@ -20,7 +25,8 @@ class PostsController extends Controller
 
     public function create()
     {
-        return view('posts.create');
+        $categories = Category::all();
+        return view('posts.create', compact('categories'));
     }
 
     public function store(CreatePostRequest $request)
@@ -32,6 +38,7 @@ class PostsController extends Controller
         $post->title = $request->title;
         $post->description = $request->description;
         $post->content = $request->content;
+        $post->category_id = $request->category;
 
         if ($request->has('published_at')) {
             $post->published_at = $request->published_at;
@@ -60,7 +67,8 @@ class PostsController extends Controller
      */
     public function edit(Post $post)
     {
-        return view('posts.create', compact('post'));
+        $categories = Category::all();
+        return view('posts.create', compact('post', 'categories'));
     }
 
     /**
@@ -72,7 +80,7 @@ class PostsController extends Controller
      */
     public function update(UpdatePostRequest $request, Post $post)
     {
-        $data  = $request->only(['title', 'description', 'content', 'published_at']);
+        $data  = $request->only(['title', 'description', 'content', 'published_at', 'category']);
         if ($request->hasFile('image')) {
             $post->deleteImage();
             list($post->image, $post->image_id, $post->thumbnail) = UploadFileController::upload($request->file('image'));
@@ -81,6 +89,7 @@ class PostsController extends Controller
         $post->description = $data['description'];
         $post->content = $data['content'];
         $post->published_at = $data['published_at'];
+        $post->category_id = $data['category'];
         $post->update();
         session()->flash('success', 'Post updated successfully');
         return redirect(route('posts.index'));
